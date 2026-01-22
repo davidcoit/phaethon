@@ -61,9 +61,7 @@ private:
     WdfNetwork cutNext;
 
     HPFilter cut50Current;
-    HPFilter cut50Next;
     bool cut50Enabled { false };
-    bool cut50Transitioning { false };
 
     juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> freqXfade;
     juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> cut50Xfade;

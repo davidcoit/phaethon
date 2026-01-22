@@ -25,7 +25,7 @@ void TrebleTR::ShelfFilter::reset()
 void TrebleTR::ShelfFilter::setCoefficients(double sampleRate, double freqHz, double gainDb)
 {
     auto coeff = juce::dsp::IIR::Coefficients<double>::makeHighShelf(sampleRate, freqHz, 0.7, ParamMapping::dbToGain(static_cast<float>(gainDb)));
-    filter.state = coeff;
+    filter.coefficients = coeff;
 }
 
 double TrebleTR::ShelfFilter::process(double x)
@@ -103,9 +103,12 @@ float TrebleTR::processSample(float x)
 
         if (!freqXfade.isSmoothing())
         {
-            cutCurrent = cutNext;
-            boostCurrent = boostNext;
             currentFreq = pendingFreq;
+            const auto freq = freqForPos(currentFreq);
+            cutCurrent.reset();
+            boostCurrent.reset();
+            cutCurrent.setCoefficients(fs, freq, -maxAbsGainDb);
+            boostCurrent.setCoefficients(fs, freq, maxAbsGainDb);
             transitioning = false;
             freqXfade.setCurrentAndTargetValue(0.0f);
         }

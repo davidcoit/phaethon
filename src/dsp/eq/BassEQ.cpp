@@ -43,7 +43,7 @@ void BassEQ::HPFilter::reset()
 void BassEQ::HPFilter::setCoefficients(double sampleRate, double freqHz)
 {
     auto coeff = juce::dsp::IIR::Coefficients<double>::makeHighPass(sampleRate, freqHz);
-    filter.state = coeff;
+    filter.coefficients = coeff;
 }
 
 double BassEQ::HPFilter::process(double x)
@@ -91,12 +91,10 @@ void BassEQ::reset()
     cutCurrent.reset();
     cutNext.reset();
     cut50Current.reset();
-    cut50Next.reset();
     freqXfade.setCurrentAndTargetValue(0.0f);
     cut50Xfade.setCurrentAndTargetValue(0.0f);
     gainXfade.setCurrentAndTargetValue(0.5f);
     transitioning = false;
-    cut50Transitioning = false;
 }
 
 void BassEQ::setFreq(FreqPos newFreq)
@@ -152,13 +150,8 @@ void BassEQ::set50HzCut(bool enabled)
         return;
 
     cut50Enabled = enabled;
-    cut50Next.reset();
-    cut50Next.setCoefficients(fs, 50.0);
-
     cut50Xfade.reset(fs, 0.02);
-    cut50Xfade.setCurrentAndTargetValue(0.0f);
-    cut50Xfade.setTargetValue(1.0f);
-    cut50Transitioning = true;
+    cut50Xfade.setTargetValue(cut50Enabled ? 1.0f : 0.0f);
 }
 
 float BassEQ::processSample(float x)
@@ -181,9 +174,15 @@ float BassEQ::processSample(float x)
 
         if (!freqXfade.isSmoothing())
         {
-            boostCurrent = boostNext;
-            cutCurrent = cutNext;
             currentFreq = pendingFreq;
+            boostCurrent.reset();
+            cutCurrent.reset();
+            const auto* entry = BassCapTable::findByIndex(static_cast<int>(currentFreq));
+            if (entry != nullptr && entry->capF > 0.0)
+            {
+                boostCurrent.setLC(bassInductorH, entry->capF);
+                cutCurrent.setLC(bassInductorH, entry->capF);
+            }
             transitioning = false;
             freqXfade.setCurrentAndTargetValue(0.0f);
         }
@@ -196,23 +195,11 @@ float BassEQ::processSample(float x)
 
     y = (1.0f - gainMix) * cutOut + gainMix * boostOut;
 
-    if (cut50Transitioning)
+    const float cutMix = cut50Xfade.getNextValue();
+    if (cutMix > 0.0f)
     {
-        const float mix = cut50Xfade.getNextValue();
-        const float yA = cut50Enabled ? static_cast<float>(cut50Next.process(y)) : y;
-        const float yB = cut50Enabled ? y : static_cast<float>(cut50Next.process(y));
-        y = (1.0f - mix) * yB + mix * yA;
-
-        if (!cut50Xfade.isSmoothing())
-        {
-            cut50Current = cut50Next;
-            cut50Transitioning = false;
-            cut50Xfade.setCurrentAndTargetValue(0.0f);
-        }
-    }
-    else if (cut50Enabled)
-    {
-        y = static_cast<float>(cut50Current.process(y));
+        const float cutOut = static_cast<float>(cut50Current.process(y));
+        y = (1.0f - cutMix) * y + cutMix * cutOut;
     }
 
     return y;

@@ -8,7 +8,7 @@ void EqCut::prepare(double sampleRate, int fadeMs)
     constexpr double cShunt = 680e-12;
     const double fc = 1.0 / (2.0 * juce::MathConstants<double>::pi * rShunt * cShunt);
     auto coeff = juce::dsp::IIR::Coefficients<double>::makeLowPass(sampleRate, fc);
-    shuntFilter.state = coeff;
+    shuntFilter.coefficients = coeff;
 
     constexpr double rSeriesPad = 2200.0;
     constexpr double rShuntPad = 1300.0;

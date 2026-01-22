@@ -2,6 +2,7 @@
 
 void Helios69Chain::prepare(double sampleRate, int samplesPerBlock)
 {
+    juce::ignoreUnused(samplesPerBlock);
     fs = sampleRate;
     filter.prepare(sampleRate, 20);
     treble.prepare(sampleRate, 20);

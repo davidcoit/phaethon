@@ -9,8 +9,8 @@ void FilterHPF::TwoPoleHPF::reset()
 void FilterHPF::TwoPoleHPF::setCutoff(double sampleRate, double hz)
 {
     auto coeff = juce::dsp::IIR::Coefficients<double>::makeHighPass(sampleRate, hz);
-    f1.state = coeff;
-    f2.state = coeff;
+    f1.coefficients = coeff;
+    f2.coefficients = coeff;
 }
 
 double FilterHPF::TwoPoleHPF::process(double x)
@@ -73,7 +73,12 @@ float FilterHPF::processSample(float x)
 
     if (!xfade.isSmoothing())
     {
-        current = next;
+        current.reset();
+        if (pendingMode == Mode::Hz80)
+            current.setCutoff(fs, 80.0);
+        else if (pendingMode == Mode::Hz140)
+            current.setCutoff(fs, 140.0);
+
         currentMode = pendingMode;
         transitioning = false;
         xfade.setCurrentAndTargetValue(0.0f);

@@ -129,8 +129,11 @@ float MidPK::processSample(float x)
 
     if (!xfade.isSmoothing())
     {
-        current = next;
         currentFreq = pendingFreq;
+        current.reset();
+        const auto* entry = tapEntryForPos(currentFreq);
+        if (entry != nullptr)
+            current.setLC(entry->tapInductorH, entry->capF);
         transitioning = false;
         xfade.setCurrentAndTargetValue(0.0f);
     }
