@@ -160,7 +160,7 @@ float BassEQ::processSample(float x)
     const float gainMix = gainXfade.getNextValue();
 
     float boostOut = 0.0f;
-    float cutOut = 0.0f;
+    float cutBandOut = 0.0f;
 
     if (transitioning)
     {
@@ -170,7 +170,7 @@ float BassEQ::processSample(float x)
         const float cutA = static_cast<float>(cutCurrent.process(y));
         const float cutB = static_cast<float>(cutNext.process(y));
         boostOut = (1.0f - mix) * boostA + mix * boostB;
-        cutOut = (1.0f - mix) * cutA + mix * cutB;
+        cutBandOut = (1.0f - mix) * cutA + mix * cutB;
 
         if (!freqXfade.isSmoothing())
         {
@@ -190,16 +190,16 @@ float BassEQ::processSample(float x)
     else
     {
         boostOut = static_cast<float>(boostCurrent.process(y));
-        cutOut = static_cast<float>(cutCurrent.process(y));
+        cutBandOut = static_cast<float>(cutCurrent.process(y));
     }
 
-    y = (1.0f - gainMix) * cutOut + gainMix * boostOut;
+    y = (1.0f - gainMix) * cutBandOut + gainMix * boostOut;
 
     const float cutMix = cut50Xfade.getNextValue();
     if (cutMix > 0.0f)
     {
-        const float cutOut = static_cast<float>(cut50Current.process(y));
-        y = (1.0f - cutMix) * y + cutMix * cutOut;
+        const float cutHpOut = static_cast<float>(cut50Current.process(y));
+        y = (1.0f - cutMix) * y + cutMix * cutHpOut;
     }
 
     return y;

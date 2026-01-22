@@ -100,3 +100,8 @@ void Helios69AudioProcessor::setStateInformation(const void* data, int sizeInByt
         if (xmlState->hasTagName(apvts.state.getType()))
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
+
+extern "C" JUCE_API juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new Helios69AudioProcessor();
+}
