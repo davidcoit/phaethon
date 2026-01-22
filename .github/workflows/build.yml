@@ -21,3 +21,12 @@ jobs:
 
       - name: Build
         run: cmake --build build --config Release
+
+      - name: Upload VST3 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Helios69WDF-${{ matrix.os }}-VST3
+          if-no-files-found: error
+          path: |
+            build/**/VST3/**/*.vst3
+            build/**/VST3/**/*.vst3/**
