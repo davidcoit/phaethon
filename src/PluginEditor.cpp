@@ -1,4 +1,5 @@
 #include "PluginEditor.h"
+#include <array>
 #include <cmath>
 
 namespace
@@ -46,8 +47,11 @@ Helios69AudioProcessorEditor::Helios69AudioProcessorEditor(Helios69AudioProcesso
     highLabel.setText("High 10k", juce::dontSendNotification);
     outputLabel.setText("Output", juce::dontSendNotification);
 
-    for (auto* comp : { &inputSlider, &bassFreqSlider, &midFreqSlider, &midGainSlider, &midModeToggle, &highGainSlider, &outputSlider,
-                        &inputLabel, &bassLabel, &midFreqLabel, &midGainLabel, &midModeLabel, &highLabel, &outputLabel })
+    const std::array<juce::Component*, 14> components = {
+        &inputSlider, &bassFreqSlider, &midFreqSlider, &midGainSlider, &midModeToggle, &highGainSlider, &outputSlider,
+        &inputLabel, &bassLabel, &midFreqLabel, &midGainLabel, &midModeLabel, &highLabel, &outputLabel
+    };
+    for (auto* comp : components)
         addAndMakeVisible(comp);
 
     inputAttachment = std::make_unique<SliderAttachment>(processor.apvts, ParamIDs::inputTrim, inputSlider);
