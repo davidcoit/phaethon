@@ -44,30 +44,49 @@ void Helios69AudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce
         buffer.clear(i, 0, buffer.getNumSamples());
 
     const auto* filterMode = apvts.getRawParameterValue(ParamIDs::filterMode);
-    const auto* trPkMode = apvts.getRawParameterValue(ParamIDs::trPkMode);
-    const auto* trFreq = apvts.getRawParameterValue(ParamIDs::trFreq);
     const auto* trGain = apvts.getRawParameterValue(ParamIDs::trGain);
     const auto* midFreq = apvts.getRawParameterValue(ParamIDs::midFreq);
     const auto* midGain = apvts.getRawParameterValue(ParamIDs::midGain);
-    const auto* bassFreq = apvts.getRawParameterValue(ParamIDs::bassFreq);
-    const auto* bassGain = apvts.getRawParameterValue(ParamIDs::bassGain);
+    const auto* midMode = apvts.getRawParameterValue(ParamIDs::midMode);
+    const auto* bassMode = apvts.getRawParameterValue(ParamIDs::bassMode);
     const auto* bass50Hz = apvts.getRawParameterValue(ParamIDs::bass50Hz);
     const auto* eqCut = apvts.getRawParameterValue(ParamIDs::eqCut);
-    const auto* preDrive = apvts.getRawParameterValue(ParamIDs::preDrive);
+    const auto* inputTrim = apvts.getRawParameterValue(ParamIDs::inputTrim);
     const auto* postTrim = apvts.getRawParameterValue(ParamIDs::postTrim);
     const auto* saturation = apvts.getRawParameterValue(ParamIDs::saturation);
 
+    chain.setInputTrimDb(inputTrim->load());
     chain.setFilterMode(static_cast<int>(filterMode->load()));
-    chain.setTrPkMode(static_cast<int>(trPkMode->load()));
-    chain.setTrFreq(static_cast<int>(trFreq->load()));
     chain.setTrGainDb(trGain->load());
     chain.setMidFreq(static_cast<int>(midFreq->load()));
-    chain.setMidGainDb(midGain->load());
-    chain.setBassFreq(static_cast<int>(bassFreq->load()));
-    chain.setBassGainDb(bassGain->load());
+
+    const bool isPeak = midMode->load() > 0.5f;
+    const float midGainAbs = midGain->load();
+    chain.setMidGainDb(isPeak ? midGainAbs : -midGainAbs);
+
+    const int bassModeIndex = static_cast<int>(bassMode->load());
+    int bassFreqIndex = 0;
+    float bassGainDb = 0.0f;
+    if (bassModeIndex <= 3)
+    {
+        bassFreqIndex = 4 - bassModeIndex; // Cut 400..60 maps to 4..1
+        bassGainDb = -12.0f;
+    }
+    else if (bassModeIndex == 4)
+    {
+        bassFreqIndex = 0;
+        bassGainDb = 0.0f;
+    }
+    else
+    {
+        bassFreqIndex = bassModeIndex - 4; // Boost 60..400 maps to 1..4
+        bassGainDb = 12.0f;
+    }
+
+    chain.setBassFreq(bassFreqIndex);
+    chain.setBassGainDb(bassGainDb);
     chain.setBass50Hz(bass50Hz->load() > 0.5f);
     chain.setEqCut(eqCut->load() > 0.5f);
-    chain.setPreDriveDb(preDrive->load());
     chain.setPostTrimDb(postTrim->load());
     chain.setSaturation(saturation->load() > 0.5f);
 

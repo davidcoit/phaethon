@@ -15,9 +15,8 @@ public:
     void prepare(double sampleRate, int samplesPerBlock);
     void reset();
 
+    void setInputTrimDb(float trimDb);
     void setFilterMode(int modeIndex);
-    void setTrPkMode(int modeIndex);
-    void setTrFreq(int index);
     void setTrGainDb(float gainDb);
     void setMidFreq(int index);
     void setMidGainDb(float gainDb);
@@ -25,7 +24,6 @@ public:
     void setBassGainDb(float gainDb);
     void setBass50Hz(bool enabled);
     void setEqCut(bool enabled);
-    void setPreDriveDb(float driveDb);
     void setPostTrimDb(float trimDb);
     void setSaturation(bool enabled);
 
@@ -33,6 +31,7 @@ public:
 
 private:
     double fs { 44100.0 };
+    float inputGain { 1.0f };
 
     FilterHPF filter;
     LineAmpPre22113 preLineAmp;
@@ -42,6 +41,4 @@ private:
     EqCut eqCut;
     LineAmpPost22113 postLineAmp;
 
-    bool trMode { true };
-    juce::SmoothedValue<float, juce::ValueSmoothingTypes::Linear> trPkXfade;
 };
